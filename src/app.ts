@@ -7,13 +7,33 @@ import authRoutes from './api/auth/auth.routes';
 import userRoutes from './api/user/user.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { verifyApiKey } from './middlewares/apiKey.middleware';
+import { reqLogger } from './middlewares/logger.middleware';
 
 const app = express();
 
 // Middleware
-app.use(verifyApiKey);
 app.use(helmet());
-app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
+
+// CORS middleware
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
+  })
+);
+
+// Preflight handler for all routes
+app.options('*', cors());
+
+// logger middleware to log all requests and responses
+app.use(reqLogger);
+
+// API key verification middleware
+app.use(verifyApiKey);
+
+// JSON body parser and other middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

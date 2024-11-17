@@ -1,15 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
-import { env } from '../config/environment';
 
 export const verifyApiKey = (
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  const clientApiKey = req.headers['x-api-key'];
+  // Skip verification for preflight requests
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
 
-  if (!clientApiKey || clientApiKey !== env.apiKey) {
-    res.status(401).json({ error: 'Invalid or missing API key.' });
+  const apiKey = req.headers['x-api-key'];
+
+  if (!apiKey) {
+    res.status(401).json({ message: 'API key is missing' });
+    return;
+  }
+
+  if (apiKey !== process.env.API_KEY) {
+    res.status(403).json({ message: 'Invalid API key' });
     return;
   }
 
