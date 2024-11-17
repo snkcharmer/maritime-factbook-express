@@ -7,14 +7,30 @@ import {
 } from './user.controller';
 import { paginationMiddleware } from '../../middlewares/pagination.middleware';
 import { authenticateToken } from '../../middlewares/auth.middleware';
+import { validateRequest } from '../utils/http-handlers';
+import {
+  DeleteUserSchema,
+  GetUserSchema,
+  UserCreateSchema,
+  UserUpdateSchema,
+} from '../../schemas';
 
 const router = Router();
 
 router.use(authenticateToken);
 
-router.get('/:id?', paginationMiddleware, getUserController);
-router.post('/', createUserController);
-router.patch('/:id', updateUserController);
-router.delete('/:id', deleteUserController);
+router.get(
+  '/:id?',
+  paginationMiddleware,
+  validateRequest(GetUserSchema),
+  getUserController
+);
+router.post(
+  '/',
+  //  validateRequest(UserCreateSchema),
+  createUserController
+);
+router.patch('/:id', validateRequest(UserUpdateSchema), updateUserController);
+router.delete('/:id', validateRequest(DeleteUserSchema), deleteUserController);
 
 export default router;

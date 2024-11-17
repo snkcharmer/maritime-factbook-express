@@ -5,8 +5,12 @@ import {
   updateUserById,
   deleteUserById,
 } from './user.service';
-import { UserCreateSchema, GetUserSchema } from '../../schemas/lib/user.schema';
+import {
+  UserCreateSchema,
+  UserUpdateSchema,
+} from '../../schemas/lib/user.schema';
 import { CustomRequest, CustomResponse } from '../../types/custom';
+import { hasAtLeastOneKey } from '../../utils/validation';
 
 export const createUserController = async (
   req: CustomRequest,
@@ -53,10 +57,25 @@ export const updateUserController = async (
   res: CustomResponse
 ): Promise<void> => {
   try {
-    const { params } = GetUserSchema.parse(req.params);
-    const { id } = params;
+    const { params, body } = UserUpdateSchema.parse({
+      params: req.params,
+      body: req.body,
+    });
 
-    const updatedData = UserCreateSchema.parse(req.body);
+    const { id } = params;
+    const updatedData = body;
+
+    if (!id) {
+      res.status(400).json({ error: 'User ID is required' });
+      return;
+    }
+
+    if (!hasAtLeastOneKey(body)) {
+      res.status(400).json({
+        error: 'At least one field is required in the body.',
+      });
+      return;
+    }
 
     const updatedUser = await updateUserById(id, updatedData);
     if (!updatedUser) {
