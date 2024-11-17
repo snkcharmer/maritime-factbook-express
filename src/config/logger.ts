@@ -4,9 +4,7 @@ const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
     winston.format.timestamp(),
-    // winston.format.json()
     winston.format.printf(({ timestamp, level, message, ...meta }) => {
-      // Structure the log in a pretty JSON format
       return JSON.stringify(
         {
           timestamp,
