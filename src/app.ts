@@ -8,6 +8,7 @@ import userRoutes from './api/user/user.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { verifyApiKey } from './middlewares/apiKey.middleware';
 import { reqLogger } from './middlewares/logger.middleware';
+import fbTableRoutes from './api/fbTable/fbTable.routes';
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use(limiter);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/fbTable', fbTableRoutes);
 
 setupSwagger(app);
 

@@ -3,11 +3,21 @@ import jwt from 'jsonwebtoken';
 import { User } from '../user/user.model';
 import dotenv from 'dotenv';
 
+interface DecodedToken {
+  id: string;
+  email: string;
+  iat: number; // Issued At
+  exp: number; // Expiration
+}
+
 dotenv.config();
 
-const saltRounds = 10;
+export const saltRounds = 10;
+
+const tokenBlacklist: Set<string> = new Set();
 
 const jwtSecret = process.env.JWT_SECRET;
+const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
 
 export const registerUser = async (
   name: string,
@@ -47,7 +57,45 @@ export const loginUser = async (email: string, password: string) => {
       throw new Error('Invalid credentials');
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
+      { id: user.id, email: user.email },
+      String(jwtSecret),
+      {
+        expiresIn: '1h',
+      }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user.id, email: user.email },
+      String(jwtRefreshSecret),
+      {
+        expiresIn: '7d',
+      }
+    );
+
+    return {
+      accessToken,
+      refreshToken,
+      user,
+    };
+  } catch (error) {
+    console.error('Login failed:', error);
+    throw new Error('Login failed');
+  }
+};
+
+export const refreshToken = async (token: string) => {
+  try {
+    // Verify the refresh token
+    const decoded = jwt.verify(token, String(jwtRefreshSecret)) as DecodedToken;
+    const user = await User.findOne({ _id: decoded.id });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Generate a new access token
+    const newAccessToken = jwt.sign(
       { id: user.id, email: user.email },
       String(jwtSecret),
       {
@@ -56,11 +104,20 @@ export const loginUser = async (email: string, password: string) => {
     );
 
     return {
-      token,
-      user,
+      accessToken: newAccessToken,
     };
   } catch (error) {
-    console.error('Login failed:', error);
-    throw new Error('Login failed');
+    throw new Error('Invalid or expired refresh token');
   }
+};
+
+export const logoutUser = (token: string) => {
+  // Optionally, perform any database actions for logout if necessary (e.g., blacklisting refresh tokens).
+  // Here, we only focus on clearing cookies or token data.
+  tokenBlacklist.add(token);
+  return { message: 'Logged out successfully' };
+};
+
+export const isTokenBlacklisted = (token: string) => {
+  return tokenBlacklist.has(token);
 };

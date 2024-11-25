@@ -1,6 +1,8 @@
+import { saltRounds } from '../api/auth/auth.service';
 import { User } from '../api/user/user.model';
 import { connectDB } from '../config/database';
 import logger from '../config/logger';
+import bcrypt from 'bcrypt';
 
 const initializeDatabase = async () => {
   try {
@@ -9,16 +11,28 @@ const initializeDatabase = async () => {
     const existingUsers = await User.countDocuments();
     if (existingUsers === 0) {
       logger.info('Initializing default users...');
+
+      const hashedAdminPassword = await bcrypt.hash(
+        'securepassword',
+        saltRounds
+      );
+      const hashedUserPassword = await bcrypt.hash(
+        'securepassword',
+        saltRounds
+      );
+
       await User.create([
         {
           name: 'Admin User',
-          email: 'admin@example.com',
-          password: 'securepassword',
+          email: 'admin@gmail.com',
+          password: hashedAdminPassword,
+          role: 'admin',
         },
         {
           name: 'John Doe',
-          email: 'john.doe@example.com',
-          password: 'securepassword',
+          email: 'john.doe@gmail.com',
+          password: hashedUserPassword,
+          role: 'end_user',
         },
       ]);
       logger.info('Default users created!');

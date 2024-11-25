@@ -4,6 +4,7 @@ import { LoginSchema } from '../schemas';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/environment';
 import { CustomRequest, CustomResponse } from '../types/custom';
+import { isTokenBlacklisted } from '../api/auth/auth.service';
 
 const RegisterSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters'),
@@ -42,6 +43,14 @@ export const authenticateToken = (
   res: CustomResponse,
   next: NextFunction
 ): void => {
+  const isSecure = env.secure === 'true';
+
+  if (!isSecure) {
+    console.warn('SECURE mode is disabled. Skipping token authentication.');
+    req.user = { id: 'devUserId', role: 'developer' }; // Mock user for dev mode
+    return next();
+  }
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -50,6 +59,11 @@ export const authenticateToken = (
   }
 
   const token = authHeader.split(' ')[1];
+
+  if (isTokenBlacklisted(token)) {
+    res.status(403).json({ error: 'Invalid or expired token.' });
+    return;
+  }
 
   try {
     const decoded = jwt.verify(token, String(env.jwtSecret));
