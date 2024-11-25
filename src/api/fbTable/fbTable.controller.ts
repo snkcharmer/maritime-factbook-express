@@ -12,10 +12,11 @@ export const createFbTableController = async (
   res: CustomResponse
 ): Promise<void> => {
   try {
-    const { userId, name, chartType, source, data } = req.body;
+    const { userId, name, chartType, source, data, category } = req.body;
 
     const fbTable = await createFbTable({
       userId,
+      category,
       name,
       chartType,
       source,
