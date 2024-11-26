@@ -3,12 +3,14 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { setupSwagger } from './utils/swagger';
-import authRoutes from './api/auth/auth.routes';
-import userRoutes from './api/user/user.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { verifyApiKey } from './middlewares/apiKey.middleware';
 import { reqLogger } from './middlewares/logger.middleware';
+import authRoutes from './api/auth/auth.routes';
+import userRoutes from './api/user/user.routes';
 import fbTableRoutes from './api/fbTable/fbTable.routes';
+import fbCategoryRoutes from './api/fbCategory/fbCategory.routes';
+import fbSubCategoryRoutes from './api/fbSubCategory/fbSubCategory.routes';
 
 const app = express();
 
@@ -47,6 +49,8 @@ app.use(limiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/fbTable', fbTableRoutes);
+app.use('/api/fbCategory', fbCategoryRoutes);
+app.use('/api/fbSubCategory', fbSubCategoryRoutes);
 
 setupSwagger(app);
 

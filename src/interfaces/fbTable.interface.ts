@@ -1,8 +1,8 @@
 import { CategoryEnum } from '../enum';
+import { IDefaultAPI } from './others.interface';
 import { IUser } from './user.interface';
 
-export interface IFbTable {
-  _id: string;
+export interface IFbTable extends IDefaultAPI {
   userId: any;
   category: CategoryEnum | null;
   name: string;
@@ -10,6 +10,4 @@ export interface IFbTable {
   source: string;
   data: any;
   user: IUser;
-  createdAt: Date;
-  updatedAt: Date;
 }
